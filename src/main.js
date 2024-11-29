@@ -1,26 +1,47 @@
-const { app, BrowserWindow, globalShortcut, screen } = require('electron');
+const { app, BrowserWindow, globalShortcut, screen, ipcMain } = require('electron');
 const path = require('path');
 
 let mainWindow = null;
 let currentDisplay = 0; // 当前显示器索引
 
-function handleHotkey(type) {
-  if (!mainWindow || mainWindow.isDestroyed()) {
-    createWindow();
-  }
-
-  if (!mainWindow.isVisible()) {
-    mainWindow.showInactive();
-  }
-
-  mainWindow.webContents.send('trigger-animation', type);
-
-  // 3秒后自动隐藏窗口
-  setTimeout(() => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      mainWindow.hide();
+async function handleHotkey(type) {
+    if (!mainWindow || mainWindow.isDestroyed()) {
+        createWindow();
     }
-  }, 3000);
+
+    if (!mainWindow.isVisible()) {
+        mainWindow.showInactive();
+    }
+
+    mainWindow.webContents.send('trigger-animation', type);
+
+    // 使用 Promise.race 和超时处理来避免事件监听器堆积
+    return Promise.race([
+        new Promise((resolve) => {
+            const cleanup = () => {
+                ipcMain.removeListener('animation-complete', handler);
+            };
+            
+            const handler = () => {
+                cleanup();
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.hide();
+                }
+                resolve();
+            };
+            
+            ipcMain.once('animation-complete', handler);
+            
+            // 添加超时保护
+            setTimeout(() => {
+                cleanup();
+                if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.hide();
+                }
+                resolve();
+            }, 3500); // 略长于动画时间
+        })
+    ]);
 }
 
 function switchDisplay() {

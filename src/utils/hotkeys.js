@@ -8,34 +8,39 @@ let displayConfig = {
   scaleFactor: 1
 };
 
+const ANIMATION_DURATION = 4000;
+let animationTimer = null; // 添加计时器管理
+
 // 监听显示器变化
 ipcRenderer.on('display-changed', (event, newConfig) => {
   displayConfig = newConfig;
-  // ���新初始化 confetti 实例以适应新的显示器
+  // 新初始化 confetti 实例以适应新的显示器
   jsConfetti = new JSConfetti();
 });
 
-export const triggerAnimation = (type) => {
-    // 根据显示器大小调整配置
+export const triggerAnimation = async (type) => {
+    const isSuccess = type === 'success';
+    
+    // 清除之前的计时器
+    if (animationTimer) {
+        clearTimeout(animationTimer);
+    }
+    
+    // 确保每次都创建新的 JSConfetti 实例
+    jsConfetti = new JSConfetti();
+    
     const baseConfettiNumber = Math.floor((displayConfig.width * displayConfig.height) / 10000);
     
-    const confettiConfig = {
-        ...type === 'success' 
-            ? {
-                confettiColors: ['#FFD700', '#FFA500', '#FF69B4', '#00FF00', '#87CEEB'],
-                confettiNumber: baseConfettiNumber * 2, // 动态计算粒子数量
-                confettiRadius: 6 * displayConfig.scaleFactor // 根据缩放因子调整大小
-              }
-            : {
-                confettiColors: ['#808080', '#A9A9A9', '#696969'],
-                confettiNumber: baseConfettiNumber,
-                confettiRadius: 6 * displayConfig.scaleFactor
-              },
-        zIndex: 999999  // 确保特效显示在最上层
-    };
-    
-    jsConfetti.addConfetti(confettiConfig);
-    return type === 'success';
+    jsConfetti.addConfetti({
+        confettiColors: isSuccess 
+            ? ['#FFD700', '#FFA500', '#FF69B4', '#00FF00', '#87CEEB']
+            : ['#808080', '#A9A9A9', '#696969'],
+        confettiNumber: isSuccess ? baseConfettiNumber * 2 : baseConfettiNumber,
+        confettiRadius: 6 * displayConfig.scaleFactor,
+        zIndex: 999999
+    });
+
+    return isSuccess;
 };
 
 let onAnimationTriggered = null;
@@ -43,25 +48,43 @@ let onAnimationTriggered = null;
 export const registerHotkeys = (callback) => {
     onAnimationTriggered = callback;
     
-    // 监听来自主进程的消息
-    ipcRenderer.on('trigger-animation', (event, type) => {
-        const isVictory = triggerAnimation(type);
+    ipcRenderer.removeAllListeners('trigger-animation');
+    
+    ipcRenderer.on('trigger-animation', async (event, type) => {
+        window.console.log(`触发${type === 'success' ? '胜利' : '失败'}动画`);
+        const isVictory = await triggerAnimation(type);
         onAnimationTriggered?.(isVictory);
+        
+        // 使用计时器变量管理动画结束
+        animationTimer = setTimeout(() => {
+            ipcRenderer.send('animation-complete');
+            animationTimer = null;
+        }, ANIMATION_DURATION);
     });
 
-    // 保留原有的键盘事件监听
-    const handler = (event) => {
+    const handler = async (event) => {
         if ((event.altKey || event.metaKey) && event.key.toLowerCase() === 'v') {
-            const isVictory = triggerAnimation('success');
+            const isVictory = await triggerAnimation('success');
             onAnimationTriggered?.(isVictory);
+            animationTimer = setTimeout(() => {
+                ipcRenderer.send('animation-complete');
+                animationTimer = null;
+            }, ANIMATION_DURATION);
         } else if ((event.altKey || event.metaKey) && event.key.toLowerCase() === 'f') {
-            const isVictory = triggerAnimation('failure');
+            const isVictory = await triggerAnimation('failure');
             onAnimationTriggered?.(isVictory);
+            animationTimer = setTimeout(() => {
+                ipcRenderer.send('animation-complete');
+                animationTimer = null;
+            }, ANIMATION_DURATION);
         }
     };
 
     document.addEventListener('keydown', handler);
     return () => {
+        if (animationTimer) {
+            clearTimeout(animationTimer);
+        }
         document.removeEventListener('keydown', handler);
         ipcRenderer.removeAllListeners('trigger-animation');
     };
