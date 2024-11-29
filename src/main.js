@@ -1,48 +1,86 @@
-const { app, BrowserWindow, globalShortcut } = require('electron');
+const { app, BrowserWindow, globalShortcut, screen } = require('electron');
 const path = require('path');
 
 let mainWindow = null;
+let currentDisplay = 0; // 当前显示器索引
+
+function handleHotkey(type) {
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+  }
+
+  if (!mainWindow.isVisible()) {
+    mainWindow.showInactive();
+  }
+
+  mainWindow.webContents.send('trigger-animation', type);
+
+  // 3秒后自动隐藏窗口
+  setTimeout(() => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.hide();
+    }
+  }, 3000);
+}
+
+function switchDisplay() {
+  const displays = screen.getAllDisplays();
+  currentDisplay = (currentDisplay + 1) % displays.length;
+  
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    const display = displays[currentDisplay];
+    
+    // 更新窗口尺寸和位置
+    mainWindow.setBounds({
+      x: display.bounds.x,
+      y: display.bounds.y,
+      width: display.bounds.width,
+      height: display.bounds.height
+    });
+    
+    // 向渲染进程发送显示器信息
+    mainWindow.webContents.send('display-changed', {
+      width: display.bounds.width,
+      height: display.bounds.height,
+      scaleFactor: display.scaleFactor
+    });
+    
+    // 切换显示器后短暂显示窗口
+    mainWindow.show();
+    setTimeout(() => {
+      mainWindow.hide();
+    }, 500);
+  }
+}
 
 function registerGlobalHotkeys(window) {
-  // 在注册热键前先清除所有已注册的热键
   globalShortcut.unregisterAll();
 
-  const sendAnimation = (type) => {
-    // 确保窗口存在且未被销毁
-    if (window && !window.isDestroyed()) {
-      window.webContents.send('trigger-animation', type);
-    }
-  };
+  // 注册显示器切换热键
+  globalShortcut.register('Alt+D', () => switchDisplay());
+  globalShortcut.register('Option+D', () => switchDisplay());
 
-  // 注册胜利热键
-  globalShortcut.register('Alt+V', () => {
-    sendAnimation('success');
-  });
-
-  // 注册失败热键
-  globalShortcut.register('Alt+F', () => {
-    sendAnimation('failure');
-  });
-
-  // macOS 特定的快捷键
-  globalShortcut.register('Option+V', () => {
-    sendAnimation('success');
-  });
-  
-  globalShortcut.register('Option+F', () => {
-    sendAnimation('failure');
-  });
+  // 注册动画触发热键
+  globalShortcut.register('Alt+V', () => handleHotkey('success'));
+  globalShortcut.register('Alt+F', () => handleHotkey('failure'));
+  globalShortcut.register('Option+V', () => handleHotkey('success'));
+  globalShortcut.register('Option+F', () => handleHotkey('failure'));
 }
 
 function createWindow() {
+  const displays = screen.getAllDisplays();
+  const display = displays[currentDisplay];
+  
   mainWindow = new BrowserWindow({
-    width: 800,
-    height: 600,
-    // 添加以下配置
-    transparent: true,          // 窗口透明
-    frame: false,              // 无边框
-    alwaysOnTop: true,        // 始终置顶
-    hasShadow: false,         // 无阴影
+    x: display.bounds.x,
+    y: display.bounds.y,
+    width: display.bounds.width,
+    height: display.bounds.height,
+    transparent: true,
+    frame: false,
+    alwaysOnTop: true,
+    hasShadow: false,
+    show: false,  // 初始时不显示窗口
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -50,16 +88,19 @@ function createWindow() {
     }
   });
 
-  // 设置窗口层级为浮动面板
   mainWindow.setVisibleOnAllWorkspaces(true);
   mainWindow.setAlwaysOnTop(true, "floating");
   
-  // 在 macOS 上设置窗口级别高于普通窗口
   if (process.platform === 'darwin') {
     mainWindow.setWindowButtonVisibility(false);
   }
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
+
+  // 在加载完成后自动隐藏窗口
+  mainWindow.webContents.on('did-finish-load', () => {
+    mainWindow.hide();
+  });
 
   // 窗口准备好后注册热键
   mainWindow.on('ready-to-show', () => {
