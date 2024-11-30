@@ -249,3 +249,45 @@ export class ConfettiAndBalloonsScheme {
         }
     }
 }
+
+// 添加气球动画和清理逻辑
+function createBalloon(color) {
+    const balloon = document.createElement('div');
+    balloon.style.cssText = `
+        width: 50px;
+        height: 65px;
+        background: ${color};
+        border-radius: 50%;
+        position: relative;
+        box-shadow: inset -10px -10px 12px rgba(0,0,0,0.15);
+        opacity: 0.9;
+        animation: balloonFloat 2s ease-in-out infinite;
+    `;
+
+    // 监听动画结束
+    balloon.addEventListener('animationend', () => {
+        // 检查气球是否达到顶部
+        const rect = balloon.getBoundingClientRect();
+        if (rect.top <= 0) {
+            // 移除气球及其子元素
+            if (balloon.parentNode) {
+                balloon.parentNode.removeChild(balloon);
+            }
+            // 清除引用以便垃圾回收
+            balloon = null;
+        }
+    });
+
+    // 添加CSS动画
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes balloonFloat {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+            100% { transform: translateY(-100vh); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
+
+    return balloon;
+}
