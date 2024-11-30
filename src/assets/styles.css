@@ -10,7 +10,6 @@ body {
     height: 100vh;
     width: 100vw;
     overflow: hidden;
-    -webkit-app-region: drag;  /* 允许拖动窗口 */
 }
 
 .app {
@@ -20,14 +19,53 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    position: relative; /* 添加相对定位 */
     background-color: transparent !important;
-    transform: scale(1);
-    transition: transform 0.3s ease;
+}
+
+h1 {
+    font-size: 8rem;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    margin: 0;
+}
+
+.victory h1 {
+    color: #FFD700;
+    text-shadow: 
+        0 0 10px rgba(255, 215, 0, 0.5),
+        0 0 20px rgba(255, 215, 0, 0.3),
+        0 0 30px rgba(255, 215, 0, 0.2);
+}
+
+.failure h1 {
+    color: #FF4444;
+    text-shadow: 
+        0 0 10px rgba(255, 68, 68, 0.5),
+        0 0 20px rgba(255, 68, 68, 0.3),
+        0 0 30px rgba(255, 68, 68, 0.2);
 }
 
 /* 使用 transform-origin 确保动画从中心点开始 */
 .victory, .failure {
     transform-origin: center center;
+}
+
+/* 自定义动画持续时间 */
+.animate__animated {
+    --animate-duration: 1000ms !important;
+}
+
+/* 调整动画延迟和重复次数 */
+.animate__pulse {
+    --animate-duration: 800ms !important;
+    animation-delay: 800ms !important; /* 使用 !important 确保覆盖库的默认值 */
+    animation-iteration-count: 2 !important;
+}
+
+.animate__rubberBand {
+    --animate-duration: 800ms !important;
+    animation-delay: 800ms !important;
+    animation-iteration-count: 2 !important;
 }
 
 @keyframes fadeIn {

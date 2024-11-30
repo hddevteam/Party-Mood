@@ -7,7 +7,7 @@ let currentAnimationPromise = null; // 用于跟踪当前动画
 let mainWindow = null;
 let currentDisplay = 0; // 当前显示器索引
 let lastAnimationStart = 0;
-const ANIMATION_DURATION = 3000; // 动画持续时间
+const ANIMATION_DURATION = 6000; // 动画持续时间
 
 function logWithTime(message) {
   const now = new Date();
