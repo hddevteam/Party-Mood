@@ -1,5 +1,6 @@
 import { ConfettiAndBalloonsScheme } from './schemes/confettiAndBalloons.js';
 import { DefaultScheme } from './schemes/defaultScheme.js';
+import { StarsAndFireworksScheme } from './schemes/starsAndFireworks.js';
 
 // 动画方案的基础接口
 class AnimationScheme {
@@ -54,8 +55,10 @@ export const animationManager = new AnimationManager();
 // 注册所有方案
 const defaultScheme = new DefaultScheme();
 const confettiAndBalloons = new ConfettiAndBalloonsScheme();
+const starsAndFireworks = new StarsAndFireworksScheme();
 
 animationManager.registerScheme(0, defaultScheme);         // Alt+0: 默认方案
 animationManager.registerScheme(1, confettiAndBalloons);   // Alt+1: 彩纸气球方案
+animationManager.registerScheme(2, starsAndFireworks);     // Alt+2: 星星烟花方案
 
 animationManager.switchScheme(0); // 设置默认方案
