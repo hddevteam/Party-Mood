@@ -1,47 +1,79 @@
 const { app, BrowserWindow, globalShortcut, screen, ipcMain } = require('electron');
 const path = require('path');
 
+const MAX_LISTENERS = 20; // 设置一个合理的最大监听器数量
+let currentAnimationPromise = null; // 用于跟踪当前动画
+
 let mainWindow = null;
 let currentDisplay = 0; // 当前显示器索引
+let lastAnimationStart = 0;
+const ANIMATION_DURATION = 3000; // 动画持续时间
+
+function logWithTime(message) {
+  const now = new Date();
+  const timeStr = now.toLocaleTimeString('zh-CN', { 
+    hour12: false,
+    fractionalSecondDigits: 3 
+  });
+  console.log(`[${timeStr}] ${message}`);
+}
 
 async function handleHotkey(type) {
-    if (!mainWindow || mainWindow.isDestroyed()) {
-        createWindow();
-    }
+  logWithTime(`触发${type}动画`);
+  if (!mainWindow || mainWindow.isDestroyed()) {
+    createWindow();
+  }
 
-    if (!mainWindow.isVisible()) {
-        mainWindow.showInactive();
-    }
+  if (!mainWindow.isVisible()) {
+    mainWindow.showInactive();
+    logWithTime('显示窗口');
+  }
 
-    mainWindow.webContents.send('trigger-animation', type);
+  // 如果有正在进行的动画，先清理它
+  if (currentAnimationPromise) {
+    ipcMain.removeAllListeners('animation-complete');
+  }
 
-    // 使用 Promise.race 和超时处理来避免事件监听器堆积
-    return Promise.race([
-        new Promise((resolve) => {
-            const cleanup = () => {
-                ipcMain.removeListener('animation-complete', handler);
-            };
-            
-            const handler = () => {
-                cleanup();
-                if (mainWindow && !mainWindow.isDestroyed()) {
-                    mainWindow.hide();
-                }
-                resolve();
-            };
-            
-            ipcMain.once('animation-complete', handler);
-            
-            // 添加超时保护
-            setTimeout(() => {
-                cleanup();
-                if (mainWindow && !mainWindow.isDestroyed()) {
-                    mainWindow.hide();
-                }
-                resolve();
-            }, 3500); // 略长于动画时间
-        })
-    ]);
+  // 更新最后一次动画开始时间
+  lastAnimationStart = Date.now();
+  mainWindow.webContents.send('trigger-animation', type);
+
+  // 设置最大监听器数量
+  ipcMain.setMaxListeners(MAX_LISTENERS);
+
+  currentAnimationPromise = new Promise((resolve) => {
+    const cleanup = () => {
+      ipcMain.removeListener('animation-complete', handler);
+    };
+    
+    const handler = () => {
+      cleanup();
+      const timeSinceLastAnimation = Date.now() - lastAnimationStart;
+      if (timeSinceLastAnimation >= ANIMATION_DURATION) {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.hide();
+          logWithTime('动画完成，隐藏窗口');
+        }
+      }
+      resolve();
+    };
+    
+    ipcMain.once('animation-complete', handler);
+    
+    setTimeout(() => {
+      cleanup();
+      const timeSinceLastAnimation = Date.now() - lastAnimationStart;
+      if (timeSinceLastAnimation >= ANIMATION_DURATION) {
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.hide();
+          logWithTime('动画超时，隐藏窗口');
+        }
+      }
+      resolve();
+    }, ANIMATION_DURATION);
+  });
+
+  return currentAnimationPromise;
 }
 
 function switchDisplay() {
@@ -116,11 +148,19 @@ function createWindow() {
     mainWindow.setWindowButtonVisibility(false);
   }
 
+  // 添加日志
+  logWithTime('创建窗口');
+
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
-  // 在加载完成后自动隐藏窗口
+  mainWindow.webContents.on('did-start-loading', () => {
+    logWithTime('开始加载页面');
+  });
+
   mainWindow.webContents.on('did-finish-load', () => {
+    logWithTime('页面加载完成');
     mainWindow.hide();
+    logWithTime('窗口隐藏');
   });
 
   // 窗口准备好后注册热键
@@ -135,7 +175,12 @@ function createWindow() {
 
   // 窗口显示时重新注册热键
   mainWindow.on('show', () => {
+    logWithTime('窗口显示');
     registerGlobalHotkeys(mainWindow);
+  });
+
+  mainWindow.on('hide', () => {
+    logWithTime('窗口隐藏');
   });
 
   mainWindow.on('closed', () => {
