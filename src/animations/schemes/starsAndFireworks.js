@@ -7,55 +7,79 @@ export class StarsAndFireworksScheme {
         this.jsConfetti = new JSConfetti();
         this.animations = [];
         this.container = null;
+        // 根据屏幕分辨率计算基础大小
+        this.baseSize = Math.min(window.innerWidth, window.innerHeight) / 100;
     }
 
     createStar(color) {
+        const size = this.baseSize * (1 + Math.random() * 0.5); // 随机大小变化
         const star = document.createElement('div');
         star.style.cssText = `
             position: absolute;
-            width: 10px;
-            height: 10px;
+            width: ${size}px;
+            height: ${size}px;
             background: ${color};
             clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-            opacity: 0.8;
+            opacity: 0.9;
+            box-shadow: 0 0 ${size/2}px ${color},
+                       0 0 ${size}px ${color};
+            filter: brightness(1.5);
+            transform-origin: center;
+            animation: starTwinkle 1.5s ease-in-out infinite;
         `;
         return star;
     }
 
     createFirework(x, y, color) {
         const particles = [];
-        const particleCount = 20;
+        const particleCount = 40; // 墛加粒子数量
+        const baseSize = this.baseSize * 0.4; // 烟花粒子基础大小
         
         for (let i = 0; i < particleCount; i++) {
+            const size = baseSize * (0.5 + Math.random() * 0.5); // 随机大小变化
             const particle = document.createElement('div');
             particle.style.cssText = `
                 position: absolute;
-                width: 4px;
-                height: 4px;
+                width: ${size}px;
+                height: ${size}px;
                 background: ${color};
                 border-radius: 50%;
                 top: ${y}px;
                 left: ${x}px;
+                box-shadow: 0 0 ${size}px ${color},
+                           0 0 ${size * 2}px ${color};
+                filter: brightness(1.5);
             `;
             this.container.appendChild(particle);
             particles.push(particle);
         }
 
+        // 优化烟花动画
+        const maxDistance = Math.min(window.innerWidth, window.innerHeight) * 0.4;
         const animation = anime({
             targets: particles,
-            translateX: (el, i) => Math.cos(2 * Math.PI * i / particleCount) * 100,
-            translateY: (el, i) => Math.sin(2 * Math.PI * i / particleCount) * 100,
-            scale: [1, 0],
+            translateX: (el, i) => {
+                const angle = (i / particleCount) * Math.PI * 2;
+                const distance = maxDistance * (0.3 + Math.random() * 0.7);
+                return Math.cos(angle) * distance;
+            },
+            translateY: (el, i) => {
+                const angle = (i / particleCount) * Math.PI * 2;
+                const distance = maxDistance * (0.3 + Math.random() * 0.7);
+                return Math.sin(angle) * distance;
+            },
+            scale: [
+                {value: 1.5, duration: 200, easing: 'easeOutQuad'},
+                {value: 0, duration: 1800, easing: 'easeInExpo'}
+            ],
             opacity: {
                 value: 0,
-                duration: 1500,
-                easing: 'linear'
+                duration: 2000,
+                easing: 'easeOutExpo'
             },
             duration: 2000,
             easing: 'easeOutExpo',
-            complete: () => {
-                particles.forEach(p => p.remove());
-            }
+            complete: () => particles.forEach(p => p.remove())
         });
 
         this.animations.push(animation);
