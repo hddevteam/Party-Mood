@@ -27,6 +27,12 @@ h1 {
     font-size: 8rem;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     margin: 0;
+    opacity: 0;  /* 默认透明 */
+    transition: opacity 0.3s ease;  /* 添加过渡效果 */
+}
+
+h1.animate__animated {
+    opacity: 1;  /* 动画时显示 */
 }
 
 .victory h1 {
