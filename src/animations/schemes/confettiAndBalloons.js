@@ -1,5 +1,6 @@
 import JSConfetti from 'js-confetti';
 import anime from 'animejs';
+import party from 'party-js';
 
 export class ConfettiAndBalloonsScheme {
     constructor() {
@@ -119,55 +120,63 @@ export class ConfettiAndBalloonsScheme {
     }
 
     async playSuccessAnimation() {
-        // 创建气球容器
+        // 创建气球容器，但将高度设置为屏幕高度的两倍，以允许气球飞得更高
         const container = document.createElement('div');
         container.style.cssText = `
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 100%;
+            height: ${window.innerHeight * 1.5}px;
             pointer-events: none;
             z-index: 9999;
+            overflow: hidden;
         `;
         document.body.appendChild(container);
 
-        // 创建多个气球
         const colors = ['#FFD700', '#FFA500', '#FF69B4', '#00FF00', '#87CEEB'];
         const balloons = [];
-        for (let i = 0; i < 10; i++) {
+        
+        // 创建气球
+        for (let i = 0; i < 15; i++) {
             const x = Math.random() * window.innerWidth;
             const balloon = this.createBalloon(container, colors[i % colors.length], x);
             balloons.push(balloon);
         }
 
-        // 修改气球上升动画，添加消失效果
+        // 修改气球动画，使其飞得更高并确保完全清理
         const balloonAnimation = anime.timeline({
             targets: balloons,
             easing: 'easeOutExpo'
         })
         .add({
-            translateY: -window.innerHeight - 100,
+            translateY: -window.innerHeight * 1.5, // 飞到屏幕高度1.5倍的位置
             duration: 4000,
-            delay: anime.stagger(200)
-        })
-        .add({
-            opacity: 0,
-            duration: 1000,
+            delay: anime.stagger(200),
             complete: () => {
-                container.remove();
+                // 动画完成后立即清理气球
+                balloons.forEach(balloon => balloon.remove());
             }
         });
 
         this.animations.push(balloonAnimation);
 
-        // 彩纸动画保持不变
+        // 添加彩纸效果
         this.jsConfetti.addConfetti({
             confettiColors: colors,
             confettiNumber: 200,
         });
 
+        // 保存容器引用以便后续清理
         this.container = container;
+
+        // 设置定时器在动画结束后清理容器
+        setTimeout(() => {
+            if (this.container === container) {
+                container.remove();
+                this.container = null;
+            }
+        }, 5000); // 稍微比动画时长长一些，确保所有效果都完成
     }
 
     async playFailureAnimation() {
@@ -248,46 +257,4 @@ export class ConfettiAndBalloonsScheme {
             this.container = null;
         }
     }
-}
-
-// 添加气球动画和清理逻辑
-function createBalloon(color) {
-    const balloon = document.createElement('div');
-    balloon.style.cssText = `
-        width: 50px;
-        height: 65px;
-        background: ${color};
-        border-radius: 50%;
-        position: relative;
-        box-shadow: inset -10px -10px 12px rgba(0,0,0,0.15);
-        opacity: 0.9;
-        animation: balloonFloat 2s ease-in-out infinite;
-    `;
-
-    // 监听动画结束
-    balloon.addEventListener('animationend', () => {
-        // 检查气球是否达到顶部
-        const rect = balloon.getBoundingClientRect();
-        if (rect.top <= 0) {
-            // 移除气球及其子元素
-            if (balloon.parentNode) {
-                balloon.parentNode.removeChild(balloon);
-            }
-            // 清除引用以便垃圾回收
-            balloon = null;
-        }
-    });
-
-    // 添加CSS动画
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes balloonFloat {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
-            100% { transform: translateY(-100vh); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
-
-    return balloon;
 }
