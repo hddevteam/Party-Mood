@@ -118,6 +118,18 @@ function registerGlobalHotkeys(window) {
   globalShortcut.register('Alt+F', () => handleHotkey('failure'));
   globalShortcut.register('Option+V', () => handleHotkey('success'));
   globalShortcut.register('Option+F', () => handleHotkey('failure'));
+
+  // 注册方案切换热键 (Alt+0 到 Alt+4)
+  for (let i = 0; i <= 4; i++) {
+    globalShortcut.register(`Alt+${i}`, () => {
+      window.webContents.send('switch-animation-scheme', i);
+      logWithTime(`切换到动画方案 ${i}`);
+    });
+    globalShortcut.register(`Option+${i}`, () => {
+      window.webContents.send('switch-animation-scheme', i);
+      logWithTime(`切换到动画方案 ${i}`);
+    });
+  }
 }
 
 function createWindow() {
