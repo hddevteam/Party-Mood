@@ -1,6 +1,5 @@
 import JSConfetti from 'js-confetti';
 import anime from 'animejs';
-import party from 'party-js';
 
 export class ConfettiAndBalloonsScheme {
     constructor() {
@@ -142,23 +141,32 @@ export class ConfettiAndBalloonsScheme {
             balloons.push(balloon);
         }
 
-        // 气球上升动画
-        const balloonAnimation = anime({
+        // 修改气球上升动画，添加消失效果
+        const balloonAnimation = anime.timeline({
             targets: balloons,
+            easing: 'easeOutExpo'
+        })
+        .add({
             translateY: -window.innerHeight - 100,
             duration: 4000,
-            easing: 'easeOutExpo',
             delay: anime.stagger(200)
+        })
+        .add({
+            opacity: 0,
+            duration: 1000,
+            complete: () => {
+                container.remove();
+            }
         });
+
         this.animations.push(balloonAnimation);
 
-        // 彩纸动画
+        // 彩纸动画保持不变
         this.jsConfetti.addConfetti({
             confettiColors: colors,
             confettiNumber: 200,
         });
 
-        // 保存容器引用以便清理
         this.container = container;
     }
 
@@ -185,43 +193,47 @@ export class ConfettiAndBalloonsScheme {
             balloons.push(balloon);
         }
 
-        // 气球上升并爆炸动画
+        // 修改气球上升并爆炸动画
         balloons.forEach((balloon, index) => {
-            const animation = anime({
+            const animation = anime.timeline({
+                easing: 'easeOutQuad'
+            })
+            .add({
                 targets: balloon,
                 translateY: -window.innerHeight * 0.6,
                 duration: 2000,
-                easing: 'easeOutQuad',
-                delay: index * 200,
+                delay: index * 200
+            })
+            .add({
+                targets: balloon,
+                duration: 100,
                 complete: () => {
-                    // 播放爆炸音效（可选）
-                    const popSound = new Audio('path/to/pop-sound.mp3');
-                    popSound.volume = 0.3;
-                    popSound.play().catch(() => {});
-                    
-                    // 创建爆炸效果
                     this.createExplosion(balloon, colors[index % colors.length]);
-                    
-                    // 淡出气球
-                    anime({
-                        targets: balloon,
-                        opacity: 0,
-                        duration: 300,
-                        easing: 'easeOutQuad',
-                        complete: () => balloon.remove()
-                    });
+                }
+            })
+            .add({
+                targets: balloon,
+                opacity: 0,
+                duration: 300,
+                complete: () => {
+                    balloon.style.display = 'none'; // 确保完全隐藏
                 }
             });
+
             this.animations.push(animation);
         });
 
-        // 灰色彩纸
+        // 添加延迟清理
+        setTimeout(() => {
+            container.remove();
+        }, 4000);
+
+        // 灰色彩纸保持不变
         this.jsConfetti.addConfetti({
             confettiColors: colors,
             confettiNumber: 100,
         });
 
-        // 保存容器引用以便清理
         this.container = container;
     }
 
