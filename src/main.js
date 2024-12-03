@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, screen, ipcMain } = require('electron');
+const { app, BrowserWindow, globalShortcut, screen, ipcMain, Notification } = require('electron');
 const path = require('path');
 
 const MAX_LISTENERS = 20; // 设置一个合理的最大监听器数量
@@ -76,6 +76,20 @@ async function handleHotkey(type) {
   return currentAnimationPromise;
 }
 
+function showNotification(title, body) {
+  if (Notification.isSupported()) {
+    const notification = new Notification({
+      title,
+      body,
+      timeoutType: 'default',
+      silent: true
+    });
+    notification.show();
+    // 2秒后自动关闭通知
+    setTimeout(() => notification.close(), 2000);
+  }
+}
+
 function switchDisplay() {
   const displays = screen.getAllDisplays();
   currentDisplay = (currentDisplay + 1) % displays.length;
@@ -103,6 +117,12 @@ function switchDisplay() {
     setTimeout(() => {
       mainWindow.hide();
     }, 500);
+
+    // 显示切换显示器的通知
+    showNotification(
+      '切换显示器',
+      `已切换到显示器 ${currentDisplay + 1}/${displays.length}`
+    );
   }
 }
 
@@ -121,14 +141,31 @@ function registerGlobalHotkeys(window) {
 
   // 注册方案切换热键 (Alt+0 到 Alt+4)
   for (let i = 0; i <= 4; i++) {
-    globalShortcut.register(`Alt+${i}`, () => {
+    const showSchemeNotification = () => {
       window.webContents.send('switch-animation-scheme', i);
       logWithTime(`切换到动画方案 ${i}`);
-    });
-    globalShortcut.register(`Option+${i}`, () => {
-      window.webContents.send('switch-animation-scheme', i);
-      logWithTime(`切换到动画方案 ${i}`);
-    });
+      
+      // 显示切换方案的通知
+      let schemeName;
+      switch(i) {
+        case 0:
+          schemeName = '默认方案';
+          break;
+        case 1:
+          schemeName = '彩纸气球方案';
+          break;
+        case 2:
+          schemeName = '星星烟花方案';
+          break;
+        default:
+          schemeName = `方案${i}`;
+      }
+      showNotification('切换动画方案', schemeName);
+    };
+
+    // 修改这里：确保回调函数被正确绑定
+    globalShortcut.register(`Alt+${i}`, showSchemeNotification);
+    globalShortcut.register(`Option+${i}`, showSchemeNotification);
   }
 }
 
@@ -145,7 +182,7 @@ function createWindow() {
     frame: false,
     alwaysOnTop: true,
     hasShadow: false,
-    show: false,  // 初始时不显示窗口
+    show: false,  // 开始时不显示窗口
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
