@@ -61,7 +61,7 @@ const App = () => {
     return (
         <div className={`app ${isVictory === null ? '' : isVictory ? 'victory' : 'failure'}`}>
             <h1 className={getAnimationClass()}>
-                {isVictory === null ? '欢迎' : isVictory ? '胜利!' : '失败!'}
+                {isVictory === null ? '欢迎' : isVictory ? '成功!' : '失败!'}
             </h1>
         </div>
     );
