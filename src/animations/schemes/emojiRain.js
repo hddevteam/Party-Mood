@@ -30,6 +30,7 @@ export class EmojiRainScheme extends AnimationScheme {
         this.currentSuccessEmojis = [];
         this.currentFailureEmojis = [];
         this.startTime = null;
+        this.cleanupTimer = null; // 添加清理定时器
     }
 
     getRandomEmojiSet(type) {
@@ -61,7 +62,7 @@ export class EmojiRainScheme extends AnimationScheme {
             font-size: ${size}px;
             user-select: none;
             pointer-events: none;
-            z-index: 9999;
+            z-index: ${this.zIndex};
             transform-origin: center;
             opacity: 0;
             filter: drop-shadow(0 0 10px ${isSuccess ? '#FFD700' : '#696969'});
@@ -88,7 +89,7 @@ export class EmojiRainScheme extends AnimationScheme {
             );
             this.container.appendChild(emoji);
 
-            // 设置初始位置
+            // 设置���始位置
             const startX = Math.random() * window.innerWidth;
             emoji.style.left = `${startX}px`;
             emoji.style.top = '-50px';
@@ -138,11 +139,11 @@ export class EmojiRainScheme extends AnimationScheme {
         setTimeout(() => {
             const actualEndTime = Date.now();
             console.log(`🏁 实际结束时间: ${new Date(actualEndTime).toLocaleTimeString()}`);
-            console.log(`⚡ 实际执行时长: ${actualEndTime - this.startTime}ms`);
+            console.log(`⚡  实际执行时长: ${actualEndTime - this.startTime}ms`);
         }, totalDuration);
 
         // Set cleanup timer
-        setTimeout(() => this.cleanup(), duration + emojisCount * 100 + 500);
+        this.scheduleCleanup(totalDuration);
     }
 
     async playFailureAnimation() {
@@ -214,7 +215,7 @@ export class EmojiRainScheme extends AnimationScheme {
         }, totalDuration);
 
         // Set cleanup timer
-        setTimeout(() => this.cleanup(), duration + emojisCount * 150 + 500);
+        this.scheduleCleanup(totalDuration);
     }
 
     setupContainer() {
@@ -225,10 +226,31 @@ export class EmojiRainScheme extends AnimationScheme {
     }
 
     cleanup() {
+        console.log('🧹 清理动画');
+        // 清除之前的定时器
+        if (this.cleanupTimer) {
+            clearTimeout(this.cleanupTimer);
+            this.cleanupTimer = null;
+        }
+
         if (this.container) {
+            // 停止所有动画
             this.animations.forEach(animation => animation.pause());
             this.animations = [];
             super.cleanup();
         }
+    }
+
+    scheduleCleanup(delay) {
+        // 清除之前的定时器
+        if (this.cleanupTimer) {
+            clearTimeout(this.cleanupTimer);
+        }
+        
+        // 设置新的清理定时器
+        this.cleanupTimer = setTimeout(() => {
+            this.cleanup();
+            this.cleanupTimer = null;
+        }, delay);
     }
 }
