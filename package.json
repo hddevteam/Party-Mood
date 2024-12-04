@@ -4,6 +4,7 @@
   "description": "A cross-platform desktop application for celebrating victories and coping with failures.",
   "main": "src/main.js",
   "scripts": {
+    "debug": "webpack --mode development && cross-env DEBUG=true electron .",
     "start": "webpack --mode development && electron .",
     "build": "webpack --mode production && electron-builder",
     "dev": "webpack --mode development --watch"
@@ -14,7 +15,7 @@
     "animation",
     "hotkeys"
   ],
-  "author": "Your Name",
+  "author": "Xiaoming Jia",
   "license": "MIT",
   "dependencies": {
     "animate.css": "^4.1.1",
@@ -32,6 +33,7 @@
     "@babel/preset-env": "^7.22.5",
     "@babel/preset-react": "^7.22.5",
     "babel-loader": "^9.1.2",
+    "cross-env": "^7.0.3",
     "css-loader": "^6.8.1",
     "eslint": "^8.50.0",
     "eslint-plugin-react": "^7.33.1",

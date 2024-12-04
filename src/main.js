@@ -8,6 +8,8 @@ let mainWindow = null;
 let currentDisplay = 0; // 当前显示器索引
 let lastAnimationStart = 0;
 const ANIMATION_DURATION = 6000; // 动画持续时间
+const isDebug = process.env.DEBUG === 'true';
+console.log('Debug mode:', isDebug); // 用于验证环境变量是否正确传递
 
 function logWithTime(message) {
   const now = new Date();
@@ -63,7 +65,8 @@ async function handleHotkey(type) {
     setTimeout(() => {
       cleanup();
       const timeSinceLastAnimation = Date.now() - lastAnimationStart;
-      if (timeSinceLastAnimation >= ANIMATION_DURATION) {
+      if (timeSinceLastAnimation >= ANIMATION_DURATION && !isDebug) {
+        // 非调试模式才自动隐藏
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.hide();
           logWithTime('动画超时，隐藏窗口');
@@ -112,11 +115,18 @@ function switchDisplay() {
       scaleFactor: display.scaleFactor
     });
     
-    // 切换显示器后短暂显示窗口
-    mainWindow.show();
-    setTimeout(() => {
-      mainWindow.hide();
-    }, 500);
+    if (isDebug) {
+      // Debug模式下确保窗口可见并打开开发者工具
+      mainWindow.show();
+      if (!mainWindow.webContents.isDevToolsOpened()) {
+        mainWindow.webContents.openDevTools();
+      }
+    } else {
+      // 非Debug模式才执行自动隐藏
+      setTimeout(() => {
+        mainWindow.hide();
+      }, 1000); // 给一个短暂延时让用户能看到切换效果
+    }
 
     // 显示切换显示器的通知
     showNotification(
@@ -182,7 +192,7 @@ function createWindow() {
     frame: false,
     alwaysOnTop: true,
     hasShadow: false,
-    show: false,  // 开始时不显示窗口
+    show: isDebug,  // 调试模式下直接显示
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -206,10 +216,16 @@ function createWindow() {
     logWithTime('开始加载页面');
   });
 
+  if (isDebug) {
+    mainWindow.webContents.openDevTools(); // 打开开发者工具
+  }
+
   mainWindow.webContents.on('did-finish-load', () => {
     logWithTime('页面加载完成');
-    mainWindow.hide();
-    logWithTime('窗口隐藏');
+    if (!isDebug) {
+      mainWindow.hide(); // 非调试模式才自动隐藏
+      logWithTime('窗口隐藏');
+    }
   });
 
   // 窗口准备好后注册热键
