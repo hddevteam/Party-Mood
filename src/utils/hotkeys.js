@@ -4,17 +4,17 @@ import { animationManager } from '../animations';
 let animationTimer = null;
 const ANIMATION_DURATION = 3000;
 
-// 注册全局热键事件处理
+// Register global hotkey event handlers
 export const registerHotkeys = (callback) => {
   const onAnimationTriggered = callback;
 
-  // 监听动画触发事件
+  // Listen for animation trigger events
   ipcRenderer.on('trigger-animation', async (event, type) => {
     if (animationTimer) {
       clearTimeout(animationTimer);
     }
 
-    window.console.log(`触发${type === 'success' ? '胜利' : '失败'}动画`);
+    window.console.log(`Triggered ${type === 'success' ? 'victory' : 'failure'} animation`);
     
     const currentScheme = animationManager.getCurrentScheme();
     if (currentScheme) {
@@ -26,7 +26,7 @@ export const registerHotkeys = (callback) => {
         }
         onAnimationTriggered?.(type === 'success');
       } catch (error) {
-        window.console.error('动画播放失败:', error);
+        window.console.error('Animation playback failed:', error);
       }
     }
 
@@ -36,17 +36,17 @@ export const registerHotkeys = (callback) => {
     }, ANIMATION_DURATION);
   });
 
-  // 监听动画方案切换事件
+  // Listen for animation scheme switch events
   ipcRenderer.on('switch-animation-scheme', (event, schemeId) => {
     const scheme = animationManager.switchScheme(schemeId);
     if (scheme) {
-      window.console.log(`切换到动画方案: ${scheme.name}`);
+      window.console.log(`Switched to animation scheme: ${scheme.name}`);
     } else {
-      window.console.warn(`动画方案 ${schemeId} 不存在`);
+      window.console.warn(`Animation scheme ${schemeId} does not exist`);
     }
   });
 
-  // 清理逻辑
+  // Cleanup logic
   window.addEventListener('beforeunload', () => {
     if (animationTimer) {
       clearTimeout(animationTimer);

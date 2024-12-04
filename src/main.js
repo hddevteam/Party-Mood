@@ -1,15 +1,15 @@
 const { app, BrowserWindow, globalShortcut, screen, ipcMain, Notification } = require('electron');
 const path = require('path');
 
-const MAX_LISTENERS = 20; // 设置一个合理的最大监听器数量
-let currentAnimationPromise = null; // 用于跟踪当前动画
+const MAX_LISTENERS = 20;
+let currentAnimationPromise = null; // Used to track the current animation
 
 let mainWindow = null;
-let currentDisplay = 0; // 当前显示器索引
+let currentDisplay = 0; // Current display index
 let lastAnimationStart = 0;
-const ANIMATION_DURATION = 6000; // 动画持续时间
+const ANIMATION_DURATION = 6000; // Animation duration
 const isDebug = process.env.DEBUG === 'true';
-console.log('Debug mode:', isDebug); // 用于验证环境变量是否正确传递
+console.log('Debug mode:', isDebug); // Used to verify if the environment variable is passed correctly
 
 function logWithTime(message) {
   const now = new Date();
@@ -21,26 +21,26 @@ function logWithTime(message) {
 }
 
 async function handleHotkey(type) {
-  logWithTime(`触发${type}动画`);
+  logWithTime(`Triggered ${type} animation`);
   if (!mainWindow || mainWindow.isDestroyed()) {
     createWindow();
   }
 
   if (!mainWindow.isVisible()) {
     mainWindow.showInactive();
-    logWithTime('显示窗口');
+    logWithTime('Window shown');
   }
 
-  // 如果有正在进行的动画，先清理它
+  // If there is an ongoing animation, clean it up first
   if (currentAnimationPromise) {
     ipcMain.removeAllListeners('animation-complete');
   }
 
-  // 更新最后一次动画开始时间
+  // Update the last animation start time
   lastAnimationStart = Date.now();
   mainWindow.webContents.send('trigger-animation', type);
 
-  // 设置最大监听器数量
+  // Set the maximum number of listeners
   ipcMain.setMaxListeners(MAX_LISTENERS);
 
   currentAnimationPromise = new Promise((resolve) => {
@@ -54,7 +54,7 @@ async function handleHotkey(type) {
       if (timeSinceLastAnimation >= ANIMATION_DURATION) {
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.hide();
-          logWithTime('动画完成，隐藏窗口');
+          logWithTime('Animation completed, hiding window');
         }
       }
       resolve();
@@ -66,10 +66,10 @@ async function handleHotkey(type) {
       cleanup();
       const timeSinceLastAnimation = Date.now() - lastAnimationStart;
       if (timeSinceLastAnimation >= ANIMATION_DURATION && !isDebug) {
-        // 非调试模式才自动隐藏
+        // Only auto-hide in non-debug mode
         if (mainWindow && !mainWindow.isDestroyed()) {
           mainWindow.hide();
-          logWithTime('动画超时，隐藏窗口');
+          logWithTime('Animation timeout, hiding window');
         }
       }
       resolve();
@@ -88,7 +88,7 @@ function showNotification(title, body) {
       silent: true
     });
     notification.show();
-    // 2秒后自动关闭通知
+    // Automatically close the notification after 2 seconds
     setTimeout(() => notification.close(), 2000);
   }
 }
@@ -100,7 +100,7 @@ function switchDisplay() {
   if (mainWindow && !mainWindow.isDestroyed()) {
     const display = displays[currentDisplay];
     
-    // 更新窗口尺寸和位置
+    // Update window size and position
     mainWindow.setBounds({
       x: display.bounds.x,
       y: display.bounds.y,
@@ -108,7 +108,7 @@ function switchDisplay() {
       height: display.bounds.height
     });
     
-    // 向渲染进程发送显示器信息
+    // Send display information to the renderer process
     mainWindow.webContents.send('display-changed', {
       width: display.bounds.width,
       height: display.bounds.height,
@@ -116,22 +116,22 @@ function switchDisplay() {
     });
     
     if (isDebug) {
-      // Debug模式下确保窗口可见并打开开发者工具
+      // Ensure the window is visible and open developer tools in debug mode
       mainWindow.show();
       if (!mainWindow.webContents.isDevToolsOpened()) {
         mainWindow.webContents.openDevTools();
       }
     } else {
-      // 非Debug模式才执行自动隐藏
+      // Only auto-hide in non-debug mode
       setTimeout(() => {
         mainWindow.hide();
-      }, 1000); // 给一个短暂延时让用户能看到切换效果
+      }, 1000); // Give a short delay to let the user see the switching effect
     }
 
-    // 显示切换显示器的通知
+    // Show notification for switching display
     showNotification(
-      '切换显示器',
-      `已切换到显示器 ${currentDisplay + 1}/${displays.length}`
+      'Switch Display',
+      `Switched to display ${currentDisplay + 1}/${displays.length}`
     );
   }
 }
@@ -139,41 +139,40 @@ function switchDisplay() {
 function registerGlobalHotkeys(window) {
   globalShortcut.unregisterAll();
 
-  // 注册显示器切换热键
+  // Register hotkeys for switching display
   globalShortcut.register('Alt+D', () => switchDisplay());
   globalShortcut.register('Option+D', () => switchDisplay());
 
-  // 注册动画触发热键
+  // Register hotkeys for triggering animations
   globalShortcut.register('Alt+V', () => handleHotkey('success'));
   globalShortcut.register('Alt+F', () => handleHotkey('failure'));
   globalShortcut.register('Option+V', () => handleHotkey('success'));
   globalShortcut.register('Option+F', () => handleHotkey('failure'));
 
-  // 注册方案切换热键 (Alt+0 到 Alt+4)
+  // Register hotkeys for switching schemes (Alt+0 to Alt+4)
   for (let i = 0; i <= 4; i++) {
     const showSchemeNotification = () => {
       window.webContents.send('switch-animation-scheme', i);
-      logWithTime(`切换到动画方案 ${i}`);
+      logWithTime(`Switched to animation scheme ${i}`);
       
-      // 显示切换方案的通知
+      // Show notification for switching scheme
       let schemeName;
       switch(i) {
         case 0:
-          schemeName = '默认方案';
+          schemeName = 'Default Scheme';
           break;
         case 1:
-          schemeName = '彩纸气球方案';
+          schemeName = 'Confetti Balloon Scheme';
           break;
         case 2:
-          schemeName = '星星烟花方案';
+          schemeName = 'Star Firework Scheme';
           break;
         default:
-          schemeName = `方案${i}`;
+          schemeName = `Scheme ${i}`;
       }
-      showNotification('切换动画方案', schemeName);
+      showNotification('Switch Animation Scheme', schemeName);
     };
 
-    // 修改这里：确保回调函数被正确绑定
     globalShortcut.register(`Alt+${i}`, showSchemeNotification);
     globalShortcut.register(`Option+${i}`, showSchemeNotification);
   }
@@ -192,7 +191,7 @@ function createWindow() {
     frame: false,
     alwaysOnTop: true,
     hasShadow: false,
-    show: isDebug,  // 调试模式下直接显示
+    show: isDebug,  // Show directly in debug mode
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
@@ -207,45 +206,41 @@ function createWindow() {
     mainWindow.setWindowButtonVisibility(false);
   }
 
-  // 添加日志
-  logWithTime('创建窗口');
+  logWithTime('Window created');
 
   mainWindow.loadFile(path.join(__dirname, 'index.html'));
 
   mainWindow.webContents.on('did-start-loading', () => {
-    logWithTime('开始加载页面');
+    logWithTime('Page loading started');
   });
 
   if (isDebug) {
-    mainWindow.webContents.openDevTools(); // 打开开发者工具
+    mainWindow.webContents.openDevTools();
   }
 
   mainWindow.webContents.on('did-finish-load', () => {
-    logWithTime('页面加载完成');
+    logWithTime('Page loading completed');
     if (!isDebug) {
-      mainWindow.hide(); // 非调试模式才自动隐藏
-      logWithTime('窗口隐藏');
+      mainWindow.hide();
+      logWithTime('Window hidden');
     }
   });
 
-  // 窗口准备好后注册热键
   mainWindow.on('ready-to-show', () => {
     registerGlobalHotkeys(mainWindow);
   });
 
-  // 窗口恢复时重新注册热键
   mainWindow.on('restore', () => {
     registerGlobalHotkeys(mainWindow);
   });
 
-  // 窗口显示时重新注册热键
   mainWindow.on('show', () => {
-    logWithTime('窗口显示');
+    logWithTime('Window shown');
     registerGlobalHotkeys(mainWindow);
   });
 
   mainWindow.on('hide', () => {
-    logWithTime('窗口隐藏');
+    logWithTime('Window hidden');
   });
 
   mainWindow.on('closed', () => {
@@ -253,24 +248,24 @@ function createWindow() {
   });
 }
 
-// 应用准备就绪时创建窗口
+// Create window when the application is ready
 app.whenReady().then(createWindow);
 
-// 处理窗口激活
+// Handle window activation
 app.on('activate', () => {
   if (mainWindow === null) {
     createWindow();
   }
 });
 
-// 所有窗口关闭时退出应用
+// Quit the application when all windows are closed
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
-// 应用退出前清理热键
+// Clean up hotkeys before the application quits
 app.on('will-quit', () => {
   globalShortcut.unregisterAll();
 });
