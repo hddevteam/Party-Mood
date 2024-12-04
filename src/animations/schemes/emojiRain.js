@@ -1,9 +1,11 @@
 import anime from 'animejs';
 import { AnimationScheme } from '../animationScheme.js';
+import { SoundManager } from '../../utils/soundManager.js';
 
 export class EmojiRainScheme extends AnimationScheme {
     constructor() {
         super('emojiRain');  // Ensure to call the parent class constructor
+        this.soundManager = new SoundManager();
         this.animations = [];
         this.emojiSets = {
             success: [
@@ -81,7 +83,7 @@ export class EmojiRainScheme extends AnimationScheme {
         // Get a new random emoji set
         const emojiSet = this.getRandomEmojiSet('success');
         console.log(`🎬 成功动画开始时间: ${new Date(this.startTime).toLocaleTimeString()}`);
-
+        this.soundManager.playSound('success');
         for (let i = 0; i < emojisCount; i++) {
             const emoji = this.createEmoji(
                 emojiSet[i % emojiSet.length],
@@ -156,7 +158,7 @@ export class EmojiRainScheme extends AnimationScheme {
 
         // Get a new random emoji set
         const emojiSet = this.getRandomEmojiSet('failure');
-
+        this.soundManager.playSound('failure');
         for (let i = 0; i < emojisCount; i++) {
             const emoji = this.createEmoji(
                 emojiSet[i % emojiSet.length],
