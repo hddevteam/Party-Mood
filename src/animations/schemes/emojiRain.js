@@ -1,34 +1,32 @@
 import anime from 'animejs';
+import { AnimationScheme } from '../animationScheme.js';
 
-export class EmojiRainScheme {
+export class EmojiRainScheme extends AnimationScheme {
     constructor() {
-        this.name = 'emojiRain';
+        super('emojiRain');  // Ensure to call the parent class constructor
         this.animations = [];
-        this.container = null;
-        
-        // 扩展 emoji 库
         this.emojiSets = {
             success: [
-                ['🎉', '⭐', '🌟', '🎊'],  // 庆祝组合
-                ['🏆', '💪', '👑', '✨'],  // 成就组合
-                ['🌈', '🎈', '🎨', '🎯'],  // 欢乐组合
-                ['💫', '⚡', '🔥', '💥'],  // 能量组合
-                ['🌺', '🌸', '🍀', '🌟']   // 自然组合
+                ['🎉', '⭐', '🌟', '🎊'],  // Celebration set
+                ['🏆', '💪', '👑', '✨'],  // Achievement set
+                ['🌈', '🎈', '🎨', '🎯'],  // Joy set
+                ['💫', '⚡', '🔥', '💥'],  // Energy set
+                ['🌺', '🌸', '🍀', '🌟']   // Nature set
             ],
             failure: [
-                ['😢', '😭', '💔', '🌧'],  // 伤心组合
-                ['😓', '😩', '😣', '😖'],  // 困扰组合
-                ['⛈', '🌫', '🌪', '⚡'],   // 坏天气组合
-                ['😶', '😔', '😕', '😫'],  // 失望组合
-                ['💨', '🕸', '🍂', '🌑']   // 萧瑟组合
+                ['😢', '😭', '💔', '🌧'],  // Sadness set
+                ['😓', '😩', '😣', '😖'],  // Trouble set
+                ['⛈', '🌫', '🌪', '⚡'],   // Bad weather set
+                ['😶', '😔', '😕', '😫'],  // Disappointment set
+                ['💨', '🕸', '🍂', '🌑']   // Desolation set
             ]
         };
         
-        // 记录上次使用的组合索引
+        // Record the index of the last used set
         this.lastSuccessIndex = -1;
         this.lastFailureIndex = -1;
         
-        // 当前使用的emoji组合
+        // Currently used emoji set
         this.currentSuccessEmojis = [];
         this.currentFailureEmojis = [];
         this.startTime = null;
@@ -56,7 +54,7 @@ export class EmojiRainScheme {
 
     createEmoji(emoji, isSuccess) {
         const element = document.createElement('div');
-        const size = 40 + Math.random() * 20; // 40-60px 随机大小
+        const size = 40 + Math.random() * 20; // Random size between 40-60px
         
         element.style.cssText = `
             position: fixed;
@@ -79,7 +77,7 @@ export class EmojiRainScheme {
         const duration = 3000;
         const emojisCount = 30;
         
-        // 获取新的随机emoji组合
+        // Get a new random emoji set
         const emojiSet = this.getRandomEmojiSet('success');
         console.log(`🎬 成功动画开始时间: ${new Date(this.startTime).toLocaleTimeString()}`);
 
@@ -130,20 +128,20 @@ export class EmojiRainScheme {
             this.animations.push(animation);
         }
 
-        // 计算预计结束时间并记录
+        // Calculate the estimated end time and record it
         const totalDuration = duration + emojisCount * 100 + 500;
         const endTime = this.startTime + totalDuration;
         console.log(`⏱️ 预计结束时间: ${new Date(endTime).toLocaleTimeString()}`);
         console.log(`📊 动画总时长: ${totalDuration}ms`);
 
-        // 在动画实际结束时记录
+        // Record when the animation actually ends
         setTimeout(() => {
             const actualEndTime = Date.now();
             console.log(`🏁 实际结束时间: ${new Date(actualEndTime).toLocaleTimeString()}`);
             console.log(`⚡ 实际执行时长: ${actualEndTime - this.startTime}ms`);
         }, totalDuration);
 
-        // 设置清理定时器
+        // Set cleanup timer
         setTimeout(() => this.cleanup(), duration + emojisCount * 100 + 500);
     }
 
@@ -155,7 +153,7 @@ export class EmojiRainScheme {
         
         console.log(`🎬 失败动画开始时间: ${new Date(this.startTime).toLocaleTimeString()}`);
 
-        // 获取新的随机emoji组合
+        // Get a new random emoji set
         const emojiSet = this.getRandomEmojiSet('failure');
 
         for (let i = 0; i < emojisCount; i++) {
@@ -202,20 +200,20 @@ export class EmojiRainScheme {
             this.animations.push(animation);
         }
 
-        // 计算预计结束时间并记录
+        // Calculate the estimated end time and record it
         const totalDuration = duration + emojisCount * 150 + 500;
         const endTime = this.startTime + totalDuration;
         console.log(`⏱️ 预计结束时间: ${new Date(endTime).toLocaleTimeString()}`);
         console.log(`📊 动画总时长: ${totalDuration}ms`);
 
-        // 在动画实际结束时记录
+        // Record when the animation actually ends
         setTimeout(() => {
             const actualEndTime = Date.now();
             console.log(`🏁 实际结束时间: ${new Date(actualEndTime).toLocaleTimeString()}`);
             console.log(`⚡ 实际执行时长: ${actualEndTime - this.startTime}ms`);
         }, totalDuration);
 
-        // 设置清理定时器
+        // Set cleanup timer
         setTimeout(() => this.cleanup(), duration + emojisCount * 150 + 500);
     }
 
@@ -223,27 +221,14 @@ export class EmojiRainScheme {
         if (this.container) {
             this.cleanup();
         }
-        
-        this.container = document.createElement('div');
-        this.container.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-            overflow: hidden;
-        `;
-        document.body.appendChild(this.container);
+        this.container = this.createAnimationContainer();
     }
 
     cleanup() {
         if (this.container) {
             this.animations.forEach(animation => animation.pause());
             this.animations = [];
-            this.container.remove();
-            this.container = null;
+            super.cleanup();
         }
     }
 }

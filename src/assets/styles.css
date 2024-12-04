@@ -12,6 +12,7 @@ body {
     overflow: hidden;
 }
 
+/* 基础布局 */
 .app {
     text-align: center;
     width: 100%;
@@ -23,12 +24,20 @@ body {
     background-color: transparent !important;
 }
 
+/* 文本动画容器 */
+.text-animation-container {
+    position: relative;
+    z-index: 1000; /* 确保文本在动画下方 */
+}
+
+/* 文本样式 */
 h1 {
     font-size: 8rem;
     text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
     margin: 0;
     opacity: 0;  /* 默认透明 */
     transition: opacity 0.3s ease;  /* 添加过渡效果 */
+    pointer-events: none; /* 防止文本影响动画交互 */
 }
 
 h1.animate__animated {

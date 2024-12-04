@@ -3,25 +3,6 @@ import { ConfettiAndBalloonsScheme } from './schemes/confettiAndBalloons.js';
 import { DefaultScheme } from './schemes/defaultScheme.js';
 import { StarsAndFireworksScheme } from './schemes/starsAndFireworks.js';
 
-// 动画方案的基础接口
-class AnimationScheme {
-    constructor(name) {
-        this.name = name;
-    }
-    
-    playSuccessAnimation() {
-        throw new Error('Must implement playSuccessAnimation');
-    }
-    
-    playFailureAnimation() {
-        throw new Error('Must implement playFailureAnimation');
-    }
-    
-    cleanup() {
-        // 清理资源
-    }
-}
-
 // 动画方案管理器
 export class AnimationManager {
     constructor() {

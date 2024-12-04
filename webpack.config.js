@@ -11,11 +11,20 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(js|jsx)$/,  // 添加 jsx 支持
+        test: /\.(js|jsx)$/,
         exclude: /node_modules/,
         use: {
           loader: 'babel-loader',
           options: {
+            presets: [
+              ['@babel/preset-env', {
+                targets: {
+                  esmodules: true
+                },
+                modules: false // 保持 ES 模块语法
+              }]
+            ],
+            plugins: ['@babel/plugin-transform-runtime'],
             cacheDirectory: true
           }
         }
@@ -27,6 +36,6 @@ module.exports = {
     ]
   },
   resolve: {
-    extensions: ['.js', '.jsx']  // 确保包含 .jsx
+    extensions: ['.js', '.jsx']
   }
 };

@@ -1,13 +1,12 @@
 import anime from 'animejs';
 import JSConfetti from 'js-confetti';
+import { AnimationScheme } from '../animationScheme.js';
 
-export class StarsAndFireworksScheme {
+export class StarsAndFireworksScheme extends AnimationScheme {
     constructor() {
-        this.name = 'starsAndFireworks';
+        super('starsAndFireworks');
         this.jsConfetti = new JSConfetti();
         this.animations = [];
-        this.container = null;
-        // 根据屏幕分辨率计算基础大小
         this.baseSize = Math.min(window.innerWidth, window.innerHeight) / 100;
     }
 
@@ -86,17 +85,7 @@ export class StarsAndFireworksScheme {
     }
 
     async playSuccessAnimation() {
-        this.container = document.createElement('div');
-        this.container.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-        `;
-        document.body.appendChild(this.container);
+        this.container = this.createAnimationContainer();
 
         // 创建星星
         const colors = ['#FFD700', '#FFA500', '#FF69B4', '#00FF00', '#87CEEB'];
@@ -150,17 +139,7 @@ export class StarsAndFireworksScheme {
     }
 
     async playFailureAnimation() {
-        this.container = document.createElement('div');
-        this.container.style.cssText = `
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 9999;
-        `;
-        document.body.appendChild(this.container);
+        this.container = this.createAnimationContainer();
 
         // 使用暗色
         const colors = ['#808080', '#A9A9A9', '#696969'];
@@ -206,10 +185,6 @@ export class StarsAndFireworksScheme {
     cleanup() {
         this.animations.forEach(animation => animation.pause());
         this.animations = [];
-
-        if (this.container) {
-            this.container.remove();
-            this.container = null;
-        }
+        super.cleanup();
     }
 }

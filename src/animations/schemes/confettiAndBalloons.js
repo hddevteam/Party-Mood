@@ -1,10 +1,10 @@
 import JSConfetti from 'js-confetti';
 import anime from 'animejs';
-import party from 'party-js';
+import { AnimationScheme } from '../animationScheme.js';
 
-export class ConfettiAndBalloonsScheme {
+export class ConfettiAndBalloonsScheme extends AnimationScheme {
     constructor() {
-        this.name = 'confettiAndBalloons';
+        super('confettiAndBalloons');
         this.jsConfetti = new JSConfetti();
         this.animations = [];
     }
@@ -120,8 +120,8 @@ export class ConfettiAndBalloonsScheme {
     }
 
     async playSuccessAnimation() {
+        const container = this.createAnimationContainer();
         // 创建气球容器，但将高度设置为屏幕高度的两倍，以允许气球飞得更高
-        const container = document.createElement('div');
         container.style.cssText = `
             position: fixed;
             top: 0;
@@ -180,8 +180,8 @@ export class ConfettiAndBalloonsScheme {
     }
 
     async playFailureAnimation() {
+        const container = this.createAnimationContainer();
         // 创建气球容器
-        const container = document.createElement('div');
         container.style.cssText = `
             position: fixed;
             top: 0;
@@ -251,10 +251,6 @@ export class ConfettiAndBalloonsScheme {
         this.animations.forEach(animation => animation.pause());
         this.animations = [];
 
-        // 移除容器
-        if (this.container) {
-            this.container.remove();
-            this.container = null;
-        }
+        super.cleanup(); // 调用父类的cleanup方法
     }
 }

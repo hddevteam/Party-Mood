@@ -60,9 +60,12 @@ const App = () => {
 
     return (
         <div className={`app ${isVictory === null ? '' : isVictory ? 'victory' : 'failure'}`}>
-            <h1 className={getAnimationClass()}>
-                {isVictory === null ? '欢迎' : isVictory ? '成功!' : '失败!'}
-            </h1>
+            {/* 添加专门的文本动画容器 */}
+            <div className="text-animation-container">
+                <h1 className={getAnimationClass()}>
+                    {isVictory === null ? '欢迎' : isVictory ? '成功!' : '失败!'}
+                </h1>
+            </div>
         </div>
     );
 };
