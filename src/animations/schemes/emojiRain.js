@@ -13,17 +13,26 @@ export class EmojiRainScheme extends AnimationScheme {
                 ['🏆', '💪', '👑', '✨'],  // Achievement set
                 ['🌈', '🎈', '🎨', '🎯'],  // Joy set
                 ['💫', '⚡', '🔥', '💥'],  // Energy set
-                ['🌺', '🌸', '🍀', '🌟']   // Nature set
+                ['🌺', '🌸', '🍀', '🌟'],  // Nature set
+                ['🎸', '🎼', '🎵', '🎹'],  // Music set
+                ['🦋', '🐝', '🌺', '🌸'],  // Garden set
+                ['🎪', '🎭', '🎨', '🎬'],  // Art set
+                ['🌞', '🌈', '☀️', '⭐'],  // Sky set
+                ['🎓', '📚', '🎯', '💡']   // Achievement set
             ],
             failure: [
                 ['😢', '😭', '💔', '🌧'],  // Sadness set
                 ['😓', '😩', '😣', '😖'],  // Trouble set
                 ['⛈', '🌫', '🌪', '⚡'],   // Bad weather set
                 ['😶', '😔', '😕', '😫'],  // Disappointment set
-                ['💨', '🕸', '🍂', '🌑']   // Desolation set
+                ['💨', '🕸', '🍂', '🌑'],  // Desolation set
+                ['🌚', '☁️', '🌫', '🌧'],  // Dark weather set
+                ['😤', '😠', '😡', '😞'],  // Anger set
+                ['🥀', '🍂', '🍁', '🌑'],  // Withered set
+                ['💢', '❌', '⛔', '🚫'],  // Error set
+                ['🕸', '🦇', '🕷', '👻']   // Spooky set
             ]
         };
-        
         // Record the index of the last used set
         this.lastSuccessIndex = -1;
         this.lastFailureIndex = -1;
