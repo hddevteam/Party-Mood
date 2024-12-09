@@ -69,18 +69,30 @@ Alt+[0-3] / Option+[0-3]        # 切换动画方案 | Switch animation schemes
 ```
 Party-Mood
 ├── src
-│   ├── main.js          # 应用的主进程入口 | Main process entry point
-│   ├── renderer.js      # 渲染进程的入口 | Renderer process entry point
+│   ├── main.js                # 应用的主进程入口 | Main process entry point
+│   ├── renderer.js            # 渲染进程的入口 | Renderer process entry point
 │   ├── components
-│   │   └── App.js      # 主应用组件 | Main application component
+│   │   └── App.js            # 主应用组件 | Main application component
+│   ├── animations
+│   │   ├── index.js          # 动画管理器 | Animation manager
+│   │   ├── animationScheme.js # 动画基类 | Base animation class
+│   │   └── schemes
+│   │       ├── defaultScheme.js      # 默认动画方案 | Default animation scheme
+│   │       ├── confettiAndBalloons.js # 彩纸气球方案 | Confetti and balloons scheme
+│   │       ├── starsAndFireworks.js   # 星星烟花方案 | Stars and fireworks scheme
+│   │       └── emojiRain.js          # Emoji雨方案 | Emoji rain scheme
 │   ├── assets
-│   │   └── styles.css   # 应用的样式定义 | Application styles
+│   │   └── styles.css        # 应用的样式定义 | Application styles
 │   └── utils
-│       └── hotkeys.js   # 全局热键逻辑 | Global hotkey logic
-├── package.json         # npm配置文件 | npm configuration file
-├── .babelrc             # Babel配置文件 | Babel configuration file
-├── .eslintrc.json       # ESLint配置文件 | ESLint configuration file
-└── README.md            # 项目文档 | Project documentation
+│       └── hotkeys.js        # 全局热键逻辑 | Global hotkey logic
+│       └── soundManager.js   # 音效管理器 | Sound manager
+├── dist                      # 打包输出目录 | Build output directory
+│   └── bundle.js            # Webpack打包文件 | Webpack bundle
+├── package.json             # npm配置文件 | npm configuration file
+├── webpack.config.js        # Webpack配置文件 | Webpack configuration file
+├── .babelrc                # Babel配置文件 | Babel configuration file
+├── .eslintrc.json         # ESLint配置文件 | ESLint configuration file
+└── README.md              # 项目文档 | Project documentation
 ```
 
 ## 安装与使用 | Installation and Usage
