@@ -27,7 +27,7 @@ body {
 /* 文本动画容器 */
 .text-animation-container {
     position: relative;
-    z-index: 1000; /* 确保文本在动画下方 */
+    z-index: 1000; 
 }
 
 /* 文本样式 */
@@ -42,6 +42,11 @@ h1 {
 
 h1.animate__animated {
     opacity: 1;  /* 动画时显示 */
+    transition: transform 0.3s ease;
+}
+
+h1.animate__animated:hover {
+    transform: translateZ(10px) scale(1.02);
 }
 
 .victory h1 {
@@ -49,7 +54,13 @@ h1.animate__animated {
     text-shadow: 
         0 0 10px rgba(255, 215, 0, 0.5),
         0 0 20px rgba(255, 215, 0, 0.3),
-        0 0 30px rgba(255, 215, 0, 0.2);
+        0 0 30px rgba(255, 215, 0, 0.2),
+        2px 2px 2px rgba(0, 0, 0, 0.3),  /* 立体阴影 */
+        0 0 40px rgba(255, 215, 0, 0.1);  /* 外发光 */
+    /* 添加文字描边 */
+    -webkit-text-stroke: 2px rgba(180, 150, 0, 0.3);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
 }
 
 .failure h1 {
@@ -57,7 +68,12 @@ h1.animate__animated {
     text-shadow: 
         0 0 10px rgba(255, 68, 68, 0.5),
         0 0 20px rgba(255, 68, 68, 0.3),
-        0 0 30px rgba(255, 68, 68, 0.2);
+        0 0 30px rgba(255, 68, 68, 0.2),
+        2px 2px 2px rgba(0, 0, 0, 0.3),
+        0 0 40px rgba(255, 68, 68, 0.1);
+    -webkit-text-stroke: 2px rgba(180, 40, 40, 0.3);
+    transform-style: preserve-3d;
+    backface-visibility: hidden;
 }
 
 /* 使用 transform-origin 确保动画从中心点开始 */

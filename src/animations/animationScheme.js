@@ -1,9 +1,10 @@
 // 动画方案的基础接口
 export class AnimationScheme {
-    constructor(name) {
+    constructor(name, isBackground = false) {
         this.name = name;
         this.container = null;
-        this.zIndex = 9999; // 默认动画层级
+        // 根据是否是背景动画来设置z-index
+        this.zIndex = isBackground ? 998 : 9999; // 背景动画设置为998，前景动画保持9999
     }
     
     // 创建独立的动画容器

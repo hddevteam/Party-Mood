@@ -1,4 +1,4 @@
-const { app, BrowserWindow, globalShortcut, screen, ipcMain, Notification } = require('electron');
+const { app, BrowserWindow, globalShortcut, screen, ipcMain, Notification, Menu } = require('electron');
 const path = require('path');
 
 const MAX_LISTENERS = 20;
@@ -139,42 +139,63 @@ function switchDisplay() {
 function registerGlobalHotkeys(window) {
   globalShortcut.unregisterAll();
 
-  // Register hotkeys for switching display
-  globalShortcut.register('Alt+D', () => switchDisplay());
-  globalShortcut.register('Option+D', () => switchDisplay());
-
-  // Register hotkeys for triggering animations
-  globalShortcut.register('Alt+V', () => handleHotkey('success'));
-  globalShortcut.register('Alt+F', () => handleHotkey('failure'));
-  globalShortcut.register('Option+V', () => handleHotkey('success'));
-  globalShortcut.register('Option+F', () => handleHotkey('failure'));
-
-  // Register hotkeys for switching schemes (Alt+0 to Alt+4)
+  // 只注册 Alt+[0-4] 快捷键
   for (let i = 0; i <= 4; i++) {
     const showSchemeNotification = () => {
       window.webContents.send('switch-animation-scheme', i);
       logWithTime(`Switched to animation scheme ${i}`);
       
-      // Show notification for switching scheme
-      let schemeName;
-      switch(i) {
-        case 0:
-          schemeName = 'Default Scheme';
-          break;
-        case 1:
-          schemeName = 'Confetti Balloon Scheme';
-          break;
-        case 2:
-          schemeName = 'Star Firework Scheme';
-          break;
-        default:
-          schemeName = `Scheme ${i}`;
-      }
-      showNotification('Switch Animation Scheme', schemeName);
+      const schemes = {
+        0: 'Default Scheme',
+        1: 'Confetti & Balloons',
+        2: 'Stars & Fireworks',
+        3: 'Emoji Rain',
+        4: 'Spiral Emoji Fountain'
+      };
+      
+      showNotification('Switch Animation Scheme', schemes[i] || `Scheme ${i}`);
     };
 
     globalShortcut.register(`Alt+${i}`, showSchemeNotification);
-    globalShortcut.register(`Option+${i}`, showSchemeNotification);
+  }
+
+  // 保留基本的成功/失败触发快捷键
+  globalShortcut.register('Alt+V', () => handleHotkey('success'));
+  globalShortcut.register('Alt+F', () => handleHotkey('failure'));
+}
+
+function createAnimationMenu() {
+  const template = [
+    {
+      label: '动画方案',
+      submenu: [
+        { label: '默认方案', accelerator: 'Alt+0', click: () => handleSchemeChange(0) },
+        { label: '彩纸气球', accelerator: 'Alt+1', click: () => handleSchemeChange(1) },
+        { label: '星星烟花', accelerator: 'Alt+2', click: () => handleSchemeChange(2) },
+        { label: 'Emoji雨', accelerator: 'Alt+3', click: () => handleSchemeChange(3) },
+        { label: '螺旋喷泉', accelerator: 'Alt+4', click: () => handleSchemeChange(4) },
+        { type: 'separator' },
+        { label: '弹跳阵列', click: () => handleSchemeChange(5) },
+        // 这里可以添加更多动画方案
+      ]
+    },
+    {
+      label: '触发',
+      submenu: [
+        { label: '成功动画', accelerator: 'Alt+V', click: () => handleHotkey('success') },
+        { label: '失败动画', accelerator: 'Alt+F', click: () => handleHotkey('failure') }
+      ]
+    }
+  ];
+
+  const menu = Menu.buildFromTemplate(template);
+  Menu.setApplicationMenu(menu);
+}
+
+function handleSchemeChange(schemeId) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('switch-animation-scheme', schemeId);
+    logWithTime(`Switched to animation scheme ${schemeId}`);
   }
 }
 
@@ -246,6 +267,8 @@ function createWindow() {
   mainWindow.on('closed', () => {
     mainWindow = null;
   });
+
+  createAnimationMenu();  // 创建菜单
 }
 
 // Create window when the application is ready
