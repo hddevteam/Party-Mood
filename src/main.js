@@ -159,9 +159,16 @@ function registerGlobalHotkeys(window) {
     globalShortcut.register(`Alt+${i}`, showSchemeNotification);
   }
 
-  // 保留基本的成功/失败触发快捷键
-  globalShortcut.register('Alt+V', () => handleHotkey('success'));
-  globalShortcut.register('Alt+F', () => handleHotkey('failure'));
+    // Register hotkeys for switching display
+    globalShortcut.register('Alt+D', () => switchDisplay());
+    globalShortcut.register('Option+D', () => switchDisplay());
+  
+    // Register hotkeys for triggering animations
+    globalShortcut.register('Alt+V', () => handleHotkey('success'));
+    globalShortcut.register('Alt+F', () => handleHotkey('failure'));
+    globalShortcut.register('Option+V', () => handleHotkey('success'));
+    globalShortcut.register('Option+F', () => handleHotkey('failure'));
+  
 }
 
 function createAnimationMenu() {
